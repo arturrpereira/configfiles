@@ -26,19 +26,20 @@
 
 ;;-------------------------------------------------------------------------
 
+(use-package lsp-pyright
+  :ensure t
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))  ; or lsp-deferred
+(setq package-check-signature nil) 
 ;; Pacotes
 (require 'package)
-(setq package-enable-at-startup nil) ; Desabilitar inicio de ativacao
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 ;; Comment/uncomment this line to enable MELPA Stable if desired.  See `package-archive-priorities`
 ;; and `package-pinned-packages`. Most users will not need or want to do this.
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+(package-initialize)
 
-(package-initialize) ; iniciar pacotes
-
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -46,7 +47,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(org-roam-ui emacsql-sqlite3 org-roam use-package phi-autopair neotree lsp-mode flex-autopair fira-code-mode evil dracula-theme auto-complete)))
+   '(lsp-pyright lsp-ui gnu-elpa-keyring-update org-roam-ui emacsql-sqlite3 org-roam use-package phi-autopair neotree lsp-mode flex-autopair fira-code-mode evil dracula-theme auto-complete)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -69,7 +70,8 @@
 
 (setq org-agenda-start-with-log-mode t)  
 (setq org-log-done 'time)
-(setq org-log-into-drawer t)
+(setq org-log-into-drawer t
+      org-deadline-warning-days 30)
 
 
 (setq org-startup-indented t)
@@ -121,3 +123,89 @@
                            ("C:/Users/artuh/Dropbox/org-agenda/GTD/tickler.org" :maxlevel . 2)))
 
 (setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+
+(add-to-list 'package-archives
+             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+
+(setq org-habit-show-habits-only-for-today t)
+
+;; Setando umas paradas de LSP
+(use-package lsp-pyright
+  :ensure t
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))  ; or lsp-deferred
+
+(use-package lsp-mode
+  :ensure t
+  :config
+  (setq lsp-headerline-breadcrumb-enable nil))
+
+(use-package lsp-ui :ensure t)
+
+(use-package ido-vertical-mode
+  :ensure t
+  :init
+  (require 'ido)
+  (ido-mode t)
+  (setq ido-enable-prefix nil
+        ido-enable-flex-matching t
+        ido-case-fold nil
+        ido-auto-merge-work-directories-length -1
+        ido-create-new-buffer 'always
+        ido-use-filename-at-point nil
+        ido-max-prospects 10)
+
+ (autoload 'python-mode "python-mode" "Python Mode." t)
+ (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
+ (add-to-list 'interpreter-mode-alist '("python" . python-mode))
+
+(add-hook 'after-init-hook 'global-company-mode)
+
+(add-hook 'emacs-lisp-mode-hook 'company-mode)
+(add-hook 'emacs-lisp-mode-hook 'paredit-mode)
+
+(use-package company-anaconda
+  :ensure t
+  :init (require 'rx)
+  :after (company)
+  :config
+  (add-to-list 'company-backends 'company-anaconda)
+  )
+(use-package company-quickhelp
+  ;; Quickhelp may incorrectly place tooltip towards end of buffer
+  ;; See: https://github.com/expez/company-quickhelp/issues/72
+  :ensure t
+  :config
+  (company-quickhelp-mode)
+  )
+
+(add-hook 'python-mode-hook 'jedi:setup)
+(setq python-shell-interpreter "/home/rafatieppo/anaconda3/bin/python3")
+
+(global-company-mode t)
+
+(setq company-idle-delay 0)
+
+(setq company-minimum-prefix-length 3)
+
+(company-quickhelp-mode 1)
+
+(setq company-quickhelp-delay 0)
+
+(defun my/python-mode-hook ())
+
+(add-to-list 'company-backends 'company-jedi)
+
+(add-hook 'python-mode-hook 'my/python-mode-hook)
+
+(add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+
+(require 'company)
+(require 'cl-lib)
+(require 'help-mode)
+(require 'find-func)
+
+(defgroup company-elisp nil
+  "Completion backend for Emacs Lisp."
+  :group 'company)
